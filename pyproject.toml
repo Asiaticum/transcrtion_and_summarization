@@ -1,0 +1,11 @@
+[project]
+name = "speech2text"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "faster-whisper>=1.2.1",
+    "torch>=2.0.0",
+    "torchaudio>=2.9.0",
+    "torchcodec>=0.4.0",
+]
