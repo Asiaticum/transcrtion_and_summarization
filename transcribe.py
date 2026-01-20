@@ -99,13 +99,14 @@ def format_timestamp(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
-def transcribe(audio_path: str, model_size: str = "large-v3-turbo", duration_limit: int = None) -> None:
+def transcribe(audio_path: str, model_size: str = "large-v3-turbo", duration_limit: int = None, output_dir: str = None) -> None:
     """音声ファイルを文字起こしする
 
     Args:
         audio_path: 音声ファイルのパス
         model_size: Whisperモデルのサイズ
         duration_limit: 文字起こしする秒数の上限 (Noneの場合は全体)
+        output_dir: 出力ディレクトリ (Noneの場合は音声ファイルと同じディレクトリ)
     """
     audio_file = Path(audio_path)
     if not audio_file.exists():
@@ -230,7 +231,13 @@ def transcribe(audio_path: str, model_size: str = "large-v3-turbo", duration_lim
     print("=" * 60)
 
     # 結果をファイルに保存
-    output_path = audio_file.with_suffix(".txt")
+    if output_dir:
+        output_dir_path = Path(output_dir)
+        output_dir_path.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir_path / audio_file.with_suffix(".txt").name
+    else:
+        output_path = audio_file.with_suffix(".txt")
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(f"ファイル: {audio_file.name}\n")
         f.write(f"モデル: {model_size}\n")
@@ -246,13 +253,13 @@ def transcribe(audio_path: str, model_size: str = "large-v3-turbo", duration_lim
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("使用方法: python transcribe.py <音声ファイル> [秒数制限]")
-        print("例: python transcribe.py audio.mp3 180  # 最初の3分だけ")
-        sys.exit(1)
+    import argparse
 
-    duration_limit = None
-    if len(sys.argv) >= 3:
-        duration_limit = int(sys.argv[2])
+    parser = argparse.ArgumentParser(description="faster-whisperを使用した音声文字起こし")
+    parser.add_argument("audio_file", help="音声ファイルのパス")
+    parser.add_argument("duration_limit", type=int, nargs="?", help="文字起こしする秒数の上限")
+    parser.add_argument("--output-dir", "-o", help="出力ディレクトリ")
 
-    transcribe(sys.argv[1], duration_limit=duration_limit)
+    args = parser.parse_args()
+
+    transcribe(args.audio_file, duration_limit=args.duration_limit, output_dir=args.output_dir)
